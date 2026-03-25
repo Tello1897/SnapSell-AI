@@ -1,0 +1,135 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-primary: var(--primary);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary: var(--on-primary);
+  --color-on-primary-container: var(--on-primary-container);
+  --color-secondary: var(--secondary);
+  --color-secondary-container: var(--secondary-container);
+  --color-on-secondary-container: var(--on-secondary-container);
+  --color-tertiary: var(--tertiary);
+  --color-tertiary-container: var(--tertiary-container);
+  --color-on-tertiary-container: var(--on-tertiary-container);
+  --color-surface: var(--surface);
+  --color-on-surface: var(--on-surface);
+  --color-surface-variant: var(--surface-variant);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+  --color-error: var(--error);
+  --color-error-container: var(--error-container);
+  --color-on-error: var(--on-error);
+
+  --font-headline: "Manrope", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-label: "Inter", sans-serif;
+}
+
+:root {
+  --primary: #8200e8;
+  --primary-container: #be86ff;
+  --on-primary: #faefff;
+  --on-primary-container: #340064;
+  --secondary: #7f3f9f;
+  --secondary-container: #eec2ff;
+  --on-secondary-container: #692989;
+  --tertiary: #9f364b;
+  --tertiary-container: #ff90a0;
+  --on-tertiary-container: #650623;
+  --surface: #fff3fe;
+  --on-surface: #3d2549;
+  --surface-variant: #f4d1ff;
+  --on-surface-variant: #6d5178;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #fdebff;
+  --surface-container: #f9e0ff;
+  --surface-container-high: #f6d9ff;
+  --surface-container-highest: #f4d1ff;
+  --outline: #896c95;
+  --outline-variant: #c2a2ce;
+  --error: #b41340;
+  --error-container: #f74b6d;
+  --on-error: #ffefef;
+}
+
+.dark {
+  --primary: #dcb8ff;
+  --primary-container: #6300b3;
+  --on-primary: #470085;
+  --on-primary-container: #f0dbff;
+  --secondary: #d3bce6;
+  --secondary-container: #503f60;
+  --on-secondary-container: #efd8ff;
+  --tertiary: #f4b7c2;
+  --tertiary-container: #723340;
+  --on-tertiary-container: #ffd9e0;
+  --surface: #161219;
+  --on-surface: #e8e0e8;
+  --surface-variant: #4b434e;
+  --on-surface-variant: #cdc3ce;
+  --surface-container-lowest: #0f0b11;
+  --surface-container-low: #1e1a21;
+  --surface-container: #221e25;
+  --surface-container-high: #2d2830;
+  --surface-container-highest: #38333b;
+  --outline: #968e98;
+  --outline-variant: #4b434e;
+  --error: #ffb4ab;
+  --error-container: #93000a;
+  --on-error: #690005;
+}
+
+@layer base {
+  html, body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  html::-webkit-scrollbar, body::-webkit-scrollbar {
+    display: none;
+  }
+  body {
+    @apply bg-surface text-on-surface font-body min-h-screen selection:bg-primary-container selection:text-on-primary-container;
+    -webkit-tap-highlight-color: transparent;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-headline;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .glass-effect {
+    @apply bg-surface-container-lowest/80 backdrop-blur-xl;
+  }
+  .ai-pulse-shadow {
+    box-shadow: 0 0 15px 2px rgba(130, 0, 232, 0.15);
+  }
+
+  @keyframes scan {
+    0%, 100% { top: 0%; }
+    50% { top: 100%; }
+  }
+
+  @keyframes scan-overlay {
+    0%, 100% { height: 0%; top: 0%; }
+    50% { height: 100%; top: 0%; }
+  }
+
+  @keyframes flash {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+}
