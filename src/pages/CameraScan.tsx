@@ -7,7 +7,9 @@ export function CameraScan() {
   const [isScanning, setIsScanning] = useState(false);
   const [step, setStep] = useState<1 | 2>(1);
   const [cameraError, setCameraError] = useState(false);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     let stream: MediaStream | null = null;
@@ -38,6 +40,37 @@ export function CameraScan() {
   const handleCapture = () => {
     setIsScanning(true);
     
+    let currentImage = capturedImage;
+    if (videoRef.current && canvasRef.current && !cameraError) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        currentImage = canvas.toDataURL('image/jpeg');
+        if (step === 1) {
+          setCapturedImage(currentImage);
+        }
+      }
+    } else if (cameraError && step === 1) {
+       // Fallback image if camera fails
+       const fallbackUrl = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80";
+       
+       // Fetch and convert to base64
+       fetch(fallbackUrl)
+         .then(res => res.blob())
+         .then(blob => {
+           const reader = new FileReader();
+           reader.onloadend = () => {
+             setCapturedImage(reader.result as string);
+           };
+           reader.readAsDataURL(blob);
+         })
+         .catch(err => console.error("Failed to load fallback image", err));
+    }
+    
     if (step === 1) {
       // Simulate AI scanning process for the object
       setTimeout(() => {
@@ -47,7 +80,7 @@ export function CameraScan() {
     } else {
       // Simulate AI scanning process for the label
       setTimeout(() => {
-        navigate('/listing');
+        navigate('/listing', { state: { image: capturedImage } });
       }, 2000);
     }
   };
@@ -78,6 +111,7 @@ export function CameraScan() {
       <div className="relative w-[85vw] max-w-sm aspect-[3/4] rounded-3xl overflow-hidden border-2 border-white/20">
         {/* Simulated or Real Camera Feed */}
         <div className="absolute inset-0 bg-zinc-900 flex items-center justify-center">
+          <canvas ref={canvasRef} className="hidden" />
           {!cameraError && (
             <video 
               ref={videoRef}
