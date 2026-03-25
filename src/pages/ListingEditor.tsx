@@ -35,13 +35,17 @@ export function ListingEditor() {
   const [error, setError] = useState<string | null>(null);
 
   // Editable fields state
-  const [title, setTitle] = useState("Giacca Verde Oliva Vintage");
-  const [description, setDescription] = useState("Giacca vintage in perfette condizioni. Colore verde oliva, taglia L. Ideale per la mezza stagione.");
-  const [condition, setCondition] = useState("Ottimo");
-  const [price, setPrice] = useState("45.00");
-  const [size, setSize] = useState("L");
-  const [brand, setBrand] = useState("Sconosciuto");
-  const [material, setMaterial] = useState("Non rilevato");
+  const [title, setTitle] = useState("");
+  const [descriptionVinted, setDescriptionVinted] = useState("");
+  const [descriptionEbay, setDescriptionEbay] = useState("");
+  const [activeTab, setActiveTab] = useState<'vinted' | 'ebay'>('vinted');
+  const [condition, setCondition] = useState("");
+  const [price, setPrice] = useState("");
+  const [priceMin, setPriceMin] = useState("");
+  const [priceMax, setPriceMax] = useState("");
+  const [size, setSize] = useState("");
+  const [brand, setBrand] = useState("");
+  const [material, setMaterial] = useState("");
 
   useEffect(() => {
     async function analyzeImage() {
@@ -132,9 +136,12 @@ Generate an Italian listing. Respond ONLY with a valid JSON object. No markdown.
           const data = JSON.parse(response.text) as ListingData;
           setListingData(data);
           setTitle(data.title);
-          setDescription(data.descriptions.vinted_wallapop);
+          setDescriptionVinted(data.descriptions.vinted_wallapop);
+          setDescriptionEbay(data.descriptions.ebay_subito);
           setCondition(data.condition);
           setPrice(data.pricing.avg_price.toFixed(2));
+          setPriceMin(data.pricing.suggested_range.min.toFixed(2));
+          setPriceMax(data.pricing.suggested_range.max.toFixed(2));
           setSize(data.detected_info.size);
           setBrand(data.detected_info.brand);
           setMaterial(data.detected_info.material);
@@ -231,11 +238,27 @@ Generate an Italian listing. Respond ONLY with a valid JSON object. No markdown.
         </div>
 
         <div className="space-y-2">
-          <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">Descrizione</label>
+          <div className="flex justify-between items-center ml-1">
+            <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Descrizione</label>
+            <div className="flex gap-2 bg-surface-container-highest rounded-lg p-1">
+              <button 
+                onClick={() => setActiveTab('vinted')}
+                className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-colors ${activeTab === 'vinted' ? 'bg-primary text-on-primary' : 'text-on-surface-variant'}`}
+              >
+                Vinted/Wallapop
+              </button>
+              <button 
+                onClick={() => setActiveTab('ebay')}
+                className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-colors ${activeTab === 'ebay' ? 'bg-primary text-on-primary' : 'text-on-surface-variant'}`}
+              >
+                eBay/Subito
+              </button>
+            </div>
+          </div>
           <div className="relative flex items-start">
             <textarea 
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              value={activeTab === 'vinted' ? descriptionVinted : descriptionEbay}
+              onChange={(e) => activeTab === 'vinted' ? setDescriptionVinted(e.target.value) : setDescriptionEbay(e.target.value)}
               rows={6}
               className="w-full bg-surface-container-low border-none rounded-2xl px-4 py-4 text-on-surface font-medium focus:ring-2 focus:ring-primary/40 transition-all outline-none resize-none no-scrollbar"
             />
@@ -274,6 +297,11 @@ Generate an Italian listing. Respond ONLY with a valid JSON object. No markdown.
               />
               <Info size={16} className="absolute right-4 fill-current" />
             </div>
+            {(priceMin || priceMax) && (
+              <p className="text-[10px] text-on-surface-variant text-center mt-1 font-medium">
+                Range stimato: €{priceMin} - €{priceMax}
+              </p>
+            )}
           </div>
         </div>
       </section>
