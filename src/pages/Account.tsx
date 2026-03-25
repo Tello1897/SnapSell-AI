@@ -12,8 +12,27 @@ import {
   Sparkles,
   Settings
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export function Account() {
+  const { currentUser, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/auth');
+    } catch (error) {
+      console.error("Failed to log out", error);
+    }
+  };
+
+  const getInitials = (name: string | null | undefined) => {
+    if (!name) return 'U';
+    return name.substring(0, 2).toUpperCase();
+  };
+
   return (
     <div className="space-y-8 pb-10">
       {/* Header */}
@@ -28,15 +47,15 @@ export function Account() {
       <div className="bg-surface-container-lowest p-6 rounded-3xl shadow-sm border border-outline-variant/10 flex items-center gap-5">
         <div className="relative">
           <div className="w-20 h-20 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container text-2xl font-bold font-headline">
-            AL
+            {getInitials(currentUser?.displayName || currentUser?.email)}
           </div>
           <div className="absolute -bottom-1 -right-1 bg-primary text-on-primary p-1.5 rounded-full border-4 border-surface-container-lowest">
             <Sparkles size={14} className="fill-current" />
           </div>
         </div>
         <div className="flex-1">
-          <h3 className="text-xl font-bold font-headline leading-tight">Alessandrino</h3>
-          <p className="text-sm text-on-surface-variant mb-2">alessandrino.AT@gmail.com</p>
+          <h3 className="text-xl font-bold font-headline leading-tight">{currentUser?.displayName || 'Utente'}</h3>
+          <p className="text-sm text-on-surface-variant mb-2">{currentUser?.email}</p>
           <div className="inline-flex items-center gap-1.5 bg-primary/10 text-primary px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider">
             Piano Pro
           </div>
@@ -95,7 +114,9 @@ export function Account() {
           <h4 className="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-3 px-2">Supporto</h4>
           <div className="bg-surface-container-lowest rounded-3xl shadow-sm border border-outline-variant/10 overflow-hidden">
             <MenuItem icon={HelpCircle} label="Centro Assistenza" />
-            <MenuItem icon={LogOut} label="Esci dall'account" isLast isDestructive />
+            <div onClick={handleLogout}>
+              <MenuItem icon={LogOut} label="Esci dall'account" isLast isDestructive />
+            </div>
           </div>
         </section>
 

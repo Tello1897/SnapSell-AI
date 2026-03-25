@@ -1,13 +1,16 @@
 import { Camera, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 export function Home() {
+  const { currentUser } = useAuth();
+  
   const [marketplaces, setMarketplaces] = useState([
     {
       id: 'vinted',
       name: 'Vinted',
-      username: '@MarioV',
+      username: currentUser?.displayName ? `@${currentUser.displayName.replace(/\s+/g, '')}` : '@Utente',
       isConnected: true,
       icon: (
         <div className="w-14 h-14 rounded-2xl bg-[#007782] flex items-center justify-center shadow-sm">
@@ -69,7 +72,7 @@ export function Home() {
     setMarketplaces(current =>
       current.map(market =>
         market.id === id
-          ? { ...market, isConnected: !market.isConnected, username: !market.isConnected ? '@MarioV' : undefined }
+          ? { ...market, isConnected: !market.isConnected, username: !market.isConnected ? (currentUser?.displayName ? `@${currentUser.displayName.replace(/\s+/g, '')}` : '@Utente') : undefined }
           : market
       )
     );

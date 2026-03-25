@@ -9,16 +9,40 @@ export function Inventory() {
   const [copiedAll, setCopiedAll] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState('Tutti');
+  const [activeTab, setActiveTab] = useState<'Vinted' | 'eBay' | 'Wallapop' | 'Subito'>('Vinted');
 
   const [titleText, setTitleText] = useState("Giacca in denim Levi's Vintage 90s - Ottime Condizioni");
-  const [descText, setDescText] = useState(`Bellissima giacca in denim vintage anni '90. Taglio classico, lavaggio medio originale. Il tessuto è robusto e di alta qualità, tipico della produzione d'epoca. 
+  
+  const defaultDescriptions = {
+    vinted_wallapop: `Bellissima giacca in denim vintage anni '90. Taglio classico, lavaggio medio originale. Il tessuto è robusto e di alta qualità, tipico della produzione d'epoca. 
 
 ✨ Condizioni: Eccellenti, nessun segno di usura.
 📏 Taglia: L (Veste comoda)
 🎨 Colore: Denim Blu Medio
 
-Perfetta per un look urban o streetwear. Spedizione rapida! #vintage #denim #levis #90s #streetwear`);
+Perfetta per un look urban o streetwear. Spedizione rapida! #vintage #denim #levis #90s #streetwear`,
+    ebay_subito: `Giacca in denim Levi's originale anni '90.
+    
+Dettagli dell'oggetto:
+- Condizioni: Usato in ottime condizioni, senza strappi o macchie.
+- Taglia: L
+- Materiale: 100% Cotone
+- Stile: Vintage/Retrò
+
+Ideale per collezionisti o amanti del genere vintage. Per ulteriori foto o misure precise, non esitate a contattarmi. Spedizione tracciata in 24/48h.`
+  };
+
+  const [descText, setDescText] = useState(defaultDescriptions.vinted_wallapop);
   const [priceText, setPriceText] = useState("22.00");
+
+  const handleTabChange = (tab: 'Vinted' | 'eBay' | 'Wallapop' | 'Subito') => {
+    setActiveTab(tab);
+    if (tab === 'Vinted' || tab === 'Wallapop') {
+      setDescText(defaultDescriptions.vinted_wallapop);
+    } else {
+      setDescText(defaultDescriptions.ebay_subito);
+    }
+  };
 
   const handleCopy = async (text: string, type: 'title' | 'desc' | 'price' | 'all') => {
     try {
@@ -100,10 +124,19 @@ Perfetta per un look urban o streetwear. Spedizione rapida! #vintage #denim #lev
       {/* Tabs Container */}
       <div>
         <div className="flex overflow-x-auto gap-4 no-scrollbar pb-2">
-          <button className="flex-shrink-0 px-6 py-2 rounded-full font-bold text-sm transition-all bg-primary text-on-primary shadow-md">Vinted</button>
-          <button className="flex-shrink-0 px-6 py-2 rounded-full font-bold text-sm transition-all bg-surface-container-lowest text-on-surface-variant border border-outline-variant/20 hover:bg-surface-container-high">eBay</button>
-          <button className="flex-shrink-0 px-6 py-2 rounded-full font-bold text-sm transition-all bg-surface-container-lowest text-on-surface-variant border border-outline-variant/20 hover:bg-surface-container-high">Wallapop</button>
-          <button className="flex-shrink-0 px-6 py-2 rounded-full font-bold text-sm transition-all bg-surface-container-lowest text-on-surface-variant border border-outline-variant/20 hover:bg-surface-container-high">Subito</button>
+          {(['Vinted', 'eBay', 'Wallapop', 'Subito'] as const).map((tab) => (
+            <button 
+              key={tab}
+              onClick={() => handleTabChange(tab)}
+              className={`flex-shrink-0 px-6 py-2 rounded-full font-bold text-sm transition-all shadow-md ${
+                activeTab === tab 
+                  ? 'bg-primary text-on-primary' 
+                  : 'bg-surface-container-lowest text-on-surface-variant border border-outline-variant/20 hover:bg-surface-container-high'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -112,7 +145,7 @@ Perfetta per un look urban o streetwear. Spedizione rapida! #vintage #denim #lev
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-            <span className="text-xs font-bold uppercase tracking-widest text-primary">Descrizione AI Vinted</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-primary">Descrizione AI {activeTab}</span>
           </div>
         </div>
         
