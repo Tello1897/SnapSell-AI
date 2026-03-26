@@ -1,8 +1,12 @@
 import { Filter, Copy, MoreVertical, Check } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 
 export function Inventory() {
+  const location = useLocation();
+  const passedData = location.state?.listingData;
+  const passedImage = location.state?.image;
+
   const [copiedTitle, setCopiedTitle] = useState(false);
   const [copiedDesc, setCopiedDesc] = useState(false);
   const [copiedPrice, setCopiedPrice] = useState(false);
@@ -11,17 +15,17 @@ export function Inventory() {
   const [activeFilter, setActiveFilter] = useState('Tutti');
   const [activeTab, setActiveTab] = useState<'Vinted' | 'eBay' | 'Wallapop' | 'Subito'>('Vinted');
 
-  const [titleText, setTitleText] = useState("Giacca in denim Levi's Vintage 90s - Ottime Condizioni");
+  const [titleText, setTitleText] = useState(passedData?.title || "Giacca in denim Levi's Vintage 90s - Ottime Condizioni");
   
   const defaultDescriptions = {
-    vinted_wallapop: `Bellissima giacca in denim vintage anni '90. Taglio classico, lavaggio medio originale. Il tessuto è robusto e di alta qualità, tipico della produzione d'epoca. 
+    vinted_wallapop: passedData?.descriptions?.vinted_wallapop || `Bellissima giacca in denim vintage anni '90. Taglio classico, lavaggio medio originale. Il tessuto è robusto e di alta qualità, tipico della produzione d'epoca. 
 
 ✨ Condizioni: Eccellenti, nessun segno di usura.
 📏 Taglia: L (Veste comoda)
 🎨 Colore: Denim Blu Medio
 
 Perfetta per un look urban o streetwear. Spedizione rapida! #vintage #denim #levis #90s #streetwear`,
-    ebay_subito: `Giacca in denim Levi's originale anni '90.
+    ebay_subito: passedData?.descriptions?.ebay_subito || `Giacca in denim Levi's originale anni '90.
     
 Dettagli dell'oggetto:
 - Condizioni: Usato in ottime condizioni, senza strappi o macchie.
@@ -33,14 +37,26 @@ Ideale per collezionisti o amanti del genere vintage. Per ulteriori foto o misur
   };
 
   const [descText, setDescText] = useState(defaultDescriptions.vinted_wallapop);
-  const [priceText, setPriceText] = useState("22.00");
+  const [priceText, setPriceText] = useState(passedData?.pricing?.avg_price?.toString() || "22.00");
+
+  useEffect(() => {
+    if (passedData) {
+      setTitleText(passedData.title);
+      setPriceText(passedData.pricing.avg_price.toString());
+      if (activeTab === 'Vinted' || activeTab === 'Wallapop') {
+        setDescText(passedData.descriptions.vinted_wallapop);
+      } else {
+        setDescText(passedData.descriptions.ebay_subito);
+      }
+    }
+  }, [passedData, activeTab]);
 
   const handleTabChange = (tab: 'Vinted' | 'eBay' | 'Wallapop' | 'Subito') => {
     setActiveTab(tab);
     if (tab === 'Vinted' || tab === 'Wallapop') {
-      setDescText(defaultDescriptions.vinted_wallapop);
+      setDescText(passedData?.descriptions?.vinted_wallapop || defaultDescriptions.vinted_wallapop);
     } else {
-      setDescText(defaultDescriptions.ebay_subito);
+      setDescText(passedData?.descriptions?.ebay_subito || defaultDescriptions.ebay_subito);
     }
   };
 
@@ -105,14 +121,14 @@ Ideale per collezionisti o amanti del genere vintage. Per ulteriori foto o misur
         <div className="bg-surface-container-low rounded-2xl p-6 flex flex-col md:flex-row gap-6 items-center shadow-sm">
           <div className="w-32 h-32 rounded-2xl overflow-hidden flex-shrink-0 shadow-lg">
             <img 
-              src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&q=80" 
-              alt="Vintage Jacket" 
+              src={passedImage || "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&q=80"} 
+              alt={titleText} 
               className="w-full h-full object-cover" 
             />
           </div>
           <div className="flex-grow text-center md:text-left">
             <span className="bg-primary-container/30 text-primary text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-2 inline-block">Selezione Attiva</span>
-            <h3 className="text-xl font-bold font-headline mb-1">Giacca Denim Vintage '90</h3>
+            <h3 className="text-xl font-bold font-headline mb-1">{titleText}</h3>
             <p className="text-on-surface-variant text-sm line-clamp-2">Analisi AI completata. Ottimizzato per 4 piattaforme diverse.</p>
           </div>
           <button className="bg-primary text-on-primary px-6 py-3 rounded-2xl font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-transform">

@@ -1,6 +1,6 @@
+import React, { useRef } from 'react';
 import { Camera, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useRef } from 'react';
 
 export function ScanSelection() {
   const navigate = useNavigate();
@@ -12,8 +12,12 @@ export function ScanSelection() {
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
-      // In a real app, you would process the file here or pass it along
-      navigate('/listing');
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        navigate('/listing', { state: { image: reader.result as string } });
+      };
+      reader.readAsDataURL(file);
     }
   };
 

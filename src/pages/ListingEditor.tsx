@@ -1,5 +1,5 @@
-import { Sparkles, Pencil, ChevronDown, Info, Ruler, Palette, Tag, Wand2, Loader2 } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Sparkles, Pencil, ChevronDown, Info, Ruler, Palette, Tag, Wand2, Loader2, Check } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 
@@ -28,6 +28,7 @@ interface ListingData {
 
 export function ListingEditor() {
   const location = useLocation();
+  const navigate = useNavigate();
   const capturedImage = location.state?.image as string | undefined;
   
   const [isAnalyzing, setIsAnalyzing] = useState(!!capturedImage);
@@ -46,6 +47,25 @@ export function ListingEditor() {
   const [size, setSize] = useState("");
   const [brand, setBrand] = useState("");
   const [material, setMaterial] = useState("");
+
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+
+  const analysisSteps = [
+    "Scansione visiva dell'oggetto...",
+    "Identificazione brand ed etichetta...",
+    "Analisi dei materiali e della taglia...",
+    "Valutazione del prezzo di mercato...",
+    "Generazione descrizioni ottimizzate..."
+  ];
+
+  useEffect(() => {
+    if (!isAnalyzing) return;
+    const interval = setInterval(() => {
+      setCurrentStepIndex((prev) => Math.min(prev + 1, analysisSteps.length - 1));
+    }, 1500); // Change step every 1.5 seconds
+
+    return () => clearInterval(interval);
+  }, [isAnalyzing]);
 
   useEffect(() => {
     async function analyzeImage() {
@@ -159,16 +179,39 @@ Generate an Italian listing. Respond ONLY with a valid JSON object. No markdown.
 
   if (isAnalyzing) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8 px-6">
         <div className="relative">
           <div className="w-24 h-24 rounded-full border-4 border-primary/20 animate-spin border-t-primary"></div>
           <div className="absolute inset-0 flex items-center justify-center">
             <Sparkles className="text-primary animate-pulse" size={32} />
           </div>
         </div>
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-black font-headline text-on-surface">Analisi in corso...</h2>
-          <p className="text-on-surface-variant">L'IA sta estraendo i dettagli dall'immagine</p>
+        
+        <div className="w-full max-w-xs space-y-6">
+          <div className="text-center space-y-2">
+            <h2 className="text-2xl font-black font-headline text-on-surface">Analisi in corso</h2>
+            <p className="text-primary font-bold text-sm h-5 transition-all">{analysisSteps[currentStepIndex]}</p>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-primary transition-all duration-500 ease-out"
+              style={{ width: `${((currentStepIndex + 1) / analysisSteps.length) * 100}%` }}
+            ></div>
+          </div>
+
+          {/* Step List */}
+          <div className="space-y-3">
+            {analysisSteps.map((step, index) => (
+              <div key={index} className={`flex items-center gap-3 text-sm transition-colors duration-300 ${index < currentStepIndex ? 'text-primary' : index === currentStepIndex ? 'text-on-surface font-bold' : 'text-on-surface-variant/50'}`}>
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center border-2 ${index < currentStepIndex ? 'border-primary bg-primary text-on-primary' : index === currentStepIndex ? 'border-primary text-primary' : 'border-on-surface-variant/30'}`}>
+                  {index < currentStepIndex ? <Check size={12} strokeWidth={3} /> : <span className="w-1.5 h-1.5 rounded-full bg-current"></span>}
+                </div>
+                <span>{step}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -327,13 +370,18 @@ Generate an Italian listing. Respond ONLY with a valid JSON object. No markdown.
 
       {/* Primary Action */}
       <div className="fixed bottom-28 left-0 w-full px-6 z-40">
-        <Link 
-          to="/inventory"
+        <button 
+          onClick={() => navigate('/inventory', { 
+            state: { 
+              listingData, 
+              image: capturedImage 
+            } 
+          })}
           className="w-full py-5 rounded-2xl bg-primary text-on-primary font-bold text-lg shadow-lg shadow-primary/20 flex items-center justify-center gap-3 active:scale-95 transition-transform"
         >
           <Wand2 size={24} className="fill-current" />
           Genera Annuncio
-        </Link>
+        </button>
       </div>
     </div>
   );

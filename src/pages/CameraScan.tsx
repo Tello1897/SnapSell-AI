@@ -37,7 +37,7 @@ export function CameraScan() {
     };
   }, []);
 
-  const handleCapture = () => {
+  const handleCapture = async () => {
     setIsScanning(true);
     
     let currentImage = capturedImage;
@@ -58,17 +58,19 @@ export function CameraScan() {
        // Fallback image if camera fails
        const fallbackUrl = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80";
        
-       // Fetch and convert to base64
-       fetch(fallbackUrl)
-         .then(res => res.blob())
-         .then(blob => {
-           const reader = new FileReader();
-           reader.onloadend = () => {
-             setCapturedImage(reader.result as string);
-           };
+       try {
+         const res = await fetch(fallbackUrl);
+         const blob = await res.blob();
+         const reader = new FileReader();
+         const base64 = await new Promise<string>((resolve) => {
+           reader.onloadend = () => resolve(reader.result as string);
            reader.readAsDataURL(blob);
-         })
-         .catch(err => console.error("Failed to load fallback image", err));
+         });
+         currentImage = base64;
+         setCapturedImage(base64);
+       } catch (err) {
+         console.error("Failed to load fallback image", err);
+       }
     }
     
     if (step === 1) {
@@ -80,7 +82,8 @@ export function CameraScan() {
     } else {
       // Simulate AI scanning process for the label
       setTimeout(() => {
-        navigate('/listing', { state: { image: capturedImage } });
+        // Use currentImage if capturedImage is still null (e.g. if step 1 failed but currentImage is available)
+        navigate('/listing', { state: { image: currentImage || capturedImage } });
       }, 2000);
     }
   };
