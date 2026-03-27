@@ -63,6 +63,7 @@ export function Inventory() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState('Tutti');
   const [activeTab, setActiveTab] = useState<'Vinted' | 'eBay' | 'Wallapop' | 'Subito'>('Vinted');
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   // Publishing State
   const [isPublishingModalOpen, setIsPublishingModalOpen] = useState(false);
@@ -182,16 +183,15 @@ Ideale per collezionisti o amanti del genere vintage. Per ulteriori foto o misur
   });
 
   const handleDeleteItem = (id: string) => {
-    if (window.confirm("Sei sicuro di voler eliminare questo oggetto?")) {
-      setItems(prev => prev.filter(item => item.id !== id));
-    }
+    setItems(prev => prev.filter(item => item.id !== id));
+    setOpenMenuId(null);
   };
 
   const handleMarkAsSold = (id: string) => {
     setItems(prev => prev.map(item => 
       item.id === id ? { ...item, status: 'sold', statusText: 'Venduto ora' } : item
     ));
-    alert("Oggetto segnato come venduto!");
+    setOpenMenuId(null);
   };
 
   return (
@@ -510,34 +510,48 @@ Ideale per collezionisti o amanti del genere vintage. Per ulteriori foto o misur
                 <p className="text-xs font-black text-on-surface mt-1">€{item.price}</p>
               </div>
               
-              <div className="relative group/menu">
-                <button className="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-full hover:bg-surface-container">
+              <div className="relative">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpenMenuId(openMenuId === item.id ? null : item.id);
+                  }}
+                  className={`p-2 transition-colors rounded-full hover:bg-surface-container ${openMenuId === item.id ? 'text-primary bg-surface-container' : 'text-on-surface-variant'}`}
+                >
                   <MoreVertical size={20} />
                 </button>
                 
-                {/* Dropdown Menu (Hidden by default, shown on hover/click) */}
-                <div className="absolute right-0 top-full mt-1 w-40 bg-surface-container-lowest rounded-xl shadow-xl border border-outline-variant/20 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all z-50 overflow-hidden">
-                  <button 
-                    onClick={() => alert(`Modifica ${item.title}`)}
-                    className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-surface-container-low flex items-center gap-2"
-                  >
-                    Modifica
-                  </button>
-                  {item.status !== 'sold' && (
-                    <button 
-                      onClick={() => handleMarkAsSold(item.id)}
-                      className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-surface-container-low flex items-center gap-2 text-secondary"
-                    >
-                      Segna come Venduto
-                    </button>
-                  )}
-                  <button 
-                    onClick={() => handleDeleteItem(item.id)}
-                    className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-surface-container-low flex items-center gap-2 text-error"
-                  >
-                    Elimina
-                  </button>
-                </div>
+                {/* Dropdown Menu */}
+                {openMenuId === item.id && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setOpenMenuId(null)}></div>
+                    <div className="absolute right-0 top-full mt-1 w-40 bg-surface-container-lowest rounded-xl shadow-xl border border-outline-variant/20 transition-all z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+                      <button 
+                        onClick={() => {
+                          alert(`Modifica ${item.title}`);
+                          setOpenMenuId(null);
+                        }}
+                        className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-surface-container-low flex items-center gap-2"
+                      >
+                        Modifica
+                      </button>
+                      {item.status !== 'sold' && (
+                        <button 
+                          onClick={() => handleMarkAsSold(item.id)}
+                          className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-surface-container-low flex items-center gap-2 text-secondary"
+                        >
+                          Segna come Venduto
+                        </button>
+                      )}
+                      <button 
+                        onClick={() => handleDeleteItem(item.id)}
+                        className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-surface-container-low flex items-center gap-2 text-error"
+                      >
+                        Elimina
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           ))
