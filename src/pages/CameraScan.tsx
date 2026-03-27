@@ -55,7 +55,7 @@ export function CameraScan() {
         }
       }
     } else {
-      setError("Impossibile accedere alla fotocamera. Assicurati di aver concesso i permessi e prova a ricaricare la pagina.");
+      setCameraError(true);
       setIsScanning(false);
       return;
     }

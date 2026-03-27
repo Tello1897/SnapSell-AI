@@ -186,6 +186,32 @@ Ideale per collezionisti o amanti del genere vintage. Per ulteriori foto o misur
     }
   };
 
+  const handleCopyAndOpen = async (text: string, marketplace: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedTitle(true);
+      setTimeout(() => setCopiedTitle(false), 2000);
+      
+      // Small delay to ensure copy is registered
+      setTimeout(() => {
+        window.open(getMarketplaceLink(marketplace), '_blank');
+      }, 100);
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+    }
+  };
+
+  const handleCopyAll = async () => {
+    const allText = `TITOLO: ${titleText}\n\nPREZZO: €${priceText}\n\nDESCRIZIONE:\n${descText}`;
+    try {
+      await navigator.clipboard.writeText(allText);
+      setCopiedAll(true);
+      setTimeout(() => setCopiedAll(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy all: ', err);
+    }
+  };
+
   const filteredItems = items.filter(item => {
     if (activeFilter === 'Tutti') return true;
     if (activeFilter === 'Pubblicati') return item.status === 'published';
@@ -272,7 +298,7 @@ Ideale per collezionisti o amanti del genere vintage. Per ulteriori foto o misur
       {/* Publishing Modal */}
       {isPublishingModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setPublishingStatus('idle') || setIsPublishingModalOpen(false)}></div>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setPublishingStatus('idle'); setIsPublishingModalOpen(false); }}></div>
           <div className="bg-surface-container-lowest w-full max-w-md rounded-[32px] shadow-2xl overflow-hidden relative z-10 animate-in zoom-in-95 duration-200">
             <div className="p-8">
               <div className="flex justify-between items-start mb-6">
@@ -420,13 +446,30 @@ Ideale per collezionisti o amanti del genere vintage. Per ulteriori foto o misur
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-            <span className="text-xs font-bold uppercase tracking-widest text-primary">Descrizione AI {activeTab}</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-primary">Ottimizzazione {activeTab}</span>
           </div>
+          <button 
+            onClick={handleCopyAll}
+            className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full transition-all flex items-center gap-2 ${
+              copiedAll ? 'bg-secondary text-on-secondary' : 'bg-surface-container-high text-on-surface-variant hover:bg-primary/10 hover:text-primary'
+            }`}
+          >
+            {copiedAll ? <Check size={12} /> : <Copy size={12} />}
+            {copiedAll ? 'Copiato!' : 'Copia Tutto'}
+          </button>
         </div>
         
         <div className="space-y-6">
           <div>
-            <p className="font-bold text-on-surface mb-2 text-sm uppercase tracking-wider">Titolo Suggerito</p>
+            <div className="flex justify-between items-end mb-2">
+              <p className="font-bold text-on-surface text-sm uppercase tracking-wider">Titolo Suggerito</p>
+              <button 
+                onClick={() => handleCopyAndOpen(titleText, activeTab)}
+                className="text-[10px] font-bold text-primary flex items-center gap-1 hover:underline"
+              >
+                Copia e Apri {activeTab} <ExternalLink size={10} />
+              </button>
+            </div>
             <div className="bg-surface-container-low rounded-xl p-4 pr-14 border border-outline-variant/20 relative group">
               <input 
                 value={titleText}
