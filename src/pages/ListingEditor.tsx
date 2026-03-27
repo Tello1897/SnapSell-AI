@@ -68,18 +68,28 @@ export function ListingEditor() {
   }, [isAnalyzing]);
 
   useEffect(() => {
-    async function analyzeImage() {
-      if (!capturedImage) return;
+    if (!capturedImage) {
+      navigate('/scan-selection');
+      return;
+    }
 
+    async function analyzeImage() {
       try {
+        setIsAnalyzing(true);
         // We need to strip the data:image/jpeg;base64, part
         const base64Data = capturedImage.split(',')[1];
         const mimeType = capturedImage.split(';')[0].split(':')[1];
 
+        if (!process.env.GEMINI_API_KEY) {
+          throw new Error("Chiave API non trovata nell'ambiente.");
+        }
+
+        console.log("Analyzing image...", { mimeType, length: base64Data.length });
+
         const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
         
         const response = await ai.models.generateContent({
-          model: 'gemini-3.1-flash-preview',
+          model: 'gemini-3-flash-preview',
           contents: {
             parts: [
               {
@@ -153,7 +163,13 @@ Generate an Italian listing. Respond ONLY with a valid JSON object. No markdown.
         });
 
         if (response.text) {
-          const data = JSON.parse(response.text) as ListingData;
+          let cleanText = response.text.trim();
+          // Remove markdown code blocks if present
+          if (cleanText.startsWith('```')) {
+            cleanText = cleanText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+          }
+          
+          const data = JSON.parse(cleanText) as ListingData;
           setListingData(data);
           setTitle(data.title);
           setDescriptionVinted(data.descriptions.vinted_wallapop);
@@ -168,7 +184,8 @@ Generate an Italian listing. Respond ONLY with a valid JSON object. No markdown.
         }
       } catch (err) {
         console.error("Error analyzing image:", err);
-        setError("Si è verificato un errore durante l'analisi dell'immagine.");
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        setError(`Errore durante l'analisi: ${errorMessage}`);
       } finally {
         setIsAnalyzing(false);
       }
@@ -252,7 +269,7 @@ Generate an Italian listing. Respond ONLY with a valid JSON object. No markdown.
       <section className="relative group">
         <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-surface-container-low">
           <img 
-            src={capturedImage || "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=80"} 
+            src={capturedImage} 
             alt="Scanned Item" 
             className="w-full h-full object-cover" 
           />

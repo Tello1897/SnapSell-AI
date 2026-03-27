@@ -54,23 +54,10 @@ export function CameraScan() {
           setCapturedImage(currentImage);
         }
       }
-    } else if (cameraError && step === 1) {
-       // Fallback image if camera fails
-       const fallbackUrl = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80";
-       
-       try {
-         const res = await fetch(fallbackUrl);
-         const blob = await res.blob();
-         const reader = new FileReader();
-         const base64 = await new Promise<string>((resolve) => {
-           reader.onloadend = () => resolve(reader.result as string);
-           reader.readAsDataURL(blob);
-         });
-         currentImage = base64;
-         setCapturedImage(base64);
-       } catch (err) {
-         console.error("Failed to load fallback image", err);
-       }
+    } else {
+      setError("Impossibile accedere alla fotocamera. Assicurati di aver concesso i permessi e prova a ricaricare la pagina.");
+      setIsScanning(false);
+      return;
     }
     
     if (step === 1) {

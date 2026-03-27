@@ -176,7 +176,7 @@ export function Account() {
             </div>
 
             <div className="space-y-4">
-              <h4 className="font-bold text-on-surface px-1">Metodo di Pagamento</h4>
+              <h4 className="font-bold text-on-surface px-1 text-sm uppercase tracking-widest">Metodo di Pagamento</h4>
               <div className="bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/10 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-8 bg-surface-container rounded flex items-center justify-center">
@@ -187,16 +187,29 @@ export function Account() {
                     <p className="text-xs text-on-surface-variant">Scade 12/28</p>
                   </div>
                 </div>
-                <button className="text-primary text-xs font-bold">Modifica</button>
+                <button 
+                  onClick={() => alert("Funzionalità di modifica pagamento in arrivo!")}
+                  className="text-primary text-xs font-bold"
+                >
+                  Modifica
+                </button>
               </div>
             </div>
 
-            <button className="w-full py-4 rounded-2xl border-2 border-outline-variant/30 font-bold text-on-surface hover:bg-surface-container-low transition-colors">
-              Cronologia Fatture
-            </button>
-            <button className="w-full py-4 rounded-2xl text-error font-bold hover:bg-error/5 transition-colors">
-              Annulla Abbonamento
-            </button>
+            <div className="space-y-3">
+              <button 
+                onClick={() => alert("Cronologia fatture non disponibile in questa demo.")}
+                className="w-full py-4 rounded-2xl border-2 border-outline-variant/30 font-bold text-on-surface hover:bg-surface-container-low transition-colors"
+              >
+                Cronologia Fatture
+              </button>
+              <button 
+                onClick={() => alert("Sei sicuro di voler annullare? Contatta il supporto per assistenza.")}
+                className="w-full py-4 rounded-2xl text-error font-bold hover:bg-error/5 transition-colors"
+              >
+                Annulla Abbonamento
+              </button>
+            </div>
           </div>
         );
 
@@ -374,17 +387,26 @@ export function Account() {
               <div className="bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/10 shadow-sm">
                 <h4 className="font-bold text-lg mb-2">Hai bisogno di aiuto?</h4>
                 <p className="text-on-surface-variant text-sm mb-6">Il nostro team è a tua disposizione per qualsiasi problema tecnico o domanda commerciale.</p>
-                <button className="w-full py-4 rounded-2xl bg-primary text-on-primary font-bold shadow-lg active:scale-95 transition-all">
+                <button 
+                  onClick={() => alert("Segnalazione inviata! Ti risponderemo entro 24 ore.")}
+                  className="w-full py-4 rounded-2xl bg-primary text-on-primary font-bold shadow-lg active:scale-95 transition-all"
+                >
                   Apri una Segnalazione
                 </button>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/10 text-center active:bg-surface-container-low transition-colors cursor-pointer">
+                <div 
+                  onClick={() => alert("Reindirizzamento al Centro Assistenza...")}
+                  className="bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/10 text-center active:bg-surface-container-low transition-colors cursor-pointer"
+                >
                   <HelpCircle className="mx-auto mb-2 text-primary" size={24} />
                   <p className="text-sm font-bold">FAQ</p>
                 </div>
-                <div className="bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/10 text-center active:bg-surface-container-low transition-colors cursor-pointer">
+                <div 
+                  onClick={() => alert("Caricamento tutorial video...")}
+                  className="bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/10 text-center active:bg-surface-container-low transition-colors cursor-pointer"
+                >
                   <Globe className="mx-auto mb-2 text-primary" size={24} />
                   <p className="text-sm font-bold">Tutorial</p>
                 </div>
@@ -423,7 +445,10 @@ export function Account() {
             {/* Header */}
             <div className="flex items-center justify-between">
               <h2 className="text-3xl font-extrabold tracking-tight font-headline">Profilo</h2>
-              <button className="p-2 rounded-full bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-colors">
+              <button 
+                onClick={() => alert("Impostazioni generali in arrivo!")}
+                className="p-2 rounded-full bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-colors"
+              >
                 <Settings size={24} />
               </button>
             </div>
