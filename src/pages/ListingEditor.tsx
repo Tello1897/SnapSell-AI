@@ -47,6 +47,7 @@ export function ListingEditor() {
   const [size, setSize] = useState("");
   const [brand, setBrand] = useState("");
   const [material, setMaterial] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
@@ -388,16 +389,59 @@ Generate an Italian listing. Respond ONLY with a valid JSON object. No markdown.
       {/* Primary Action */}
       <div className="fixed bottom-28 left-0 w-full px-6 z-40">
         <button 
-          onClick={() => navigate('/inventory', { 
-            state: { 
-              listingData, 
-              image: capturedImage 
-            } 
-          })}
-          className="w-full py-5 rounded-2xl bg-primary text-on-primary font-bold text-lg shadow-lg shadow-primary/20 flex items-center justify-center gap-3 active:scale-95 transition-transform"
+          disabled={isSaving || isAnalyzing}
+          onClick={() => {
+            try {
+              setIsSaving(true);
+              const finalData = {
+                ...listingData,
+                title,
+                descriptions: {
+                  vinted_wallapop: descriptionVinted,
+                  ebay_subito: descriptionEbay
+                },
+                condition,
+                pricing: {
+                  ...listingData?.pricing,
+                  avg_price: parseFloat(price) || 0
+                },
+                detected_info: {
+                  brand,
+                  size,
+                  material
+                }
+              };
+              
+              console.log("Saving listing and navigating...");
+              
+              // Small delay to ensure UI feedback and state stability
+              setTimeout(() => {
+                navigate('/inventory', { 
+                  state: { 
+                    listingData: finalData, 
+                    image: capturedImage 
+                  } 
+                });
+              }, 300);
+            } catch (err) {
+              console.error("Navigation error:", err);
+              alert("Errore durante il salvataggio. Riprova.");
+              setIsSaving(false);
+            }
+          }}
+          className={`w-full py-5 rounded-2xl bg-primary text-on-primary font-bold text-lg shadow-lg shadow-primary/20 flex items-center justify-center gap-3 active:scale-95 transition-all ${isSaving || isAnalyzing ? 'opacity-70 cursor-not-allowed' : ''}`}
         >
-          <Wand2 size={24} className="fill-current" />
-          Genera Annuncio
+          {isSaving ? (
+            <>
+              <Loader2 size={24} className="animate-spin" />
+              Salvataggio...
+            </>
+          ) : (
+            <>
+              <Wand2 size={24} className="fill-current" />
+              Pubblica Annuncio
+            </>
+          )}
         </button>
       </div>
     </div>

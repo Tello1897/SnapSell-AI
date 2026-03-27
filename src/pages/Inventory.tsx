@@ -1,6 +1,6 @@
 import { Filter, Copy, MoreVertical, Check, ExternalLink, Loader2, X, AlertCircle } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
 
 interface InventoryItem {
   id: string;
@@ -64,6 +64,7 @@ export function Inventory() {
   const [activeFilter, setActiveFilter] = useState('Tutti');
   const [activeTab, setActiveTab] = useState<'Vinted' | 'eBay' | 'Wallapop' | 'Subito'>('Vinted');
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const itemAddedRef = useRef(false);
 
   // Publishing State
   const [isPublishingModalOpen, setIsPublishingModalOpen] = useState(false);
@@ -97,16 +98,28 @@ Ideale per collezionisti o amanti del genere vintage. Per ulteriori foto o misur
   const [priceText, setPriceText] = useState(passedData?.pricing?.avg_price?.toString() || "22.00");
 
   useEffect(() => {
-    if (passedData) {
-      setTitleText(passedData.title);
-      setPriceText(passedData.pricing.avg_price.toString());
+    if (passedData && passedImage && !itemAddedRef.current) {
+      itemAddedRef.current = true;
+      const newItem: InventoryItem = {
+        id: Date.now().toString(),
+        title: passedData.title || "Nuovo Oggetto",
+        status: 'draft',
+        statusText: 'Bozza appena creata',
+        image: passedImage,
+        price: passedData.pricing?.avg_price?.toString() || "0.00",
+        date: new Date().toISOString().split('T')[0]
+      };
+      setItems(prev => [newItem, ...prev]);
+
+      setTitleText(passedData.title || "");
+      setPriceText(passedData.pricing?.avg_price?.toString() || "0.00");
       if (activeTab === 'Vinted' || activeTab === 'Wallapop') {
-        setDescText(passedData.descriptions.vinted_wallapop);
+        setDescText(passedData.descriptions?.vinted_wallapop || "");
       } else {
-        setDescText(passedData.descriptions.ebay_subito);
+        setDescText(passedData.descriptions?.ebay_subito || "");
       }
     }
-  }, [passedData, activeTab]);
+  }, [passedData, passedImage, activeTab]);
 
   const handleTabChange = (tab: 'Vinted' | 'eBay' | 'Wallapop' | 'Subito') => {
     setActiveTab(tab);
