@@ -57,10 +57,22 @@ export function Account() {
   // Marketplaces State
   const [connectedMarketplaces, setConnectedMarketplaces] = useState<string[]>(['Vinted']);
 
-  const toggleMarketplace = (name: string) => {
-    setConnectedMarketplaces(prev => 
-      prev.includes(name) ? prev.filter(m => m !== name) : [...prev, name]
-    );
+  const toggleMarketplace = async (name: string) => {
+    if (connectedMarketplaces.includes(name)) {
+      setConnectedMarketplaces(prev => prev.filter(m => m !== name));
+      alert(`${name} scollegato con successo.`);
+    } else {
+      // Simulate connection process
+      const confirmConnect = window.confirm(`Vuoi connettere il tuo account ${name}? Verrai reindirizzato per l'autenticazione.`);
+      if (confirmConnect) {
+        // In a real app, this would open an OAuth popup
+        alert(`Connessione a ${name} in corso...`);
+        setTimeout(() => {
+          setConnectedMarketplaces(prev => [...prev, name]);
+          alert(`${name} connesso con successo!`);
+        }, 2000);
+      }
+    }
   };
 
   const handleLogout = async () => {

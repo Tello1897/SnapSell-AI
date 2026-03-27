@@ -1,11 +1,60 @@
-import { Filter, Copy, MoreVertical, Check } from 'lucide-react';
+import { Filter, Copy, MoreVertical, Check, ExternalLink, Loader2, X, AlertCircle } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+
+interface InventoryItem {
+  id: string;
+  title: string;
+  status: 'published' | 'draft' | 'processing' | 'sold';
+  statusText: string;
+  image: string;
+  price: string;
+  date: string;
+}
 
 export function Inventory() {
   const location = useLocation();
   const passedData = location.state?.listingData;
   const passedImage = location.state?.image;
+
+  const [items, setItems] = useState<InventoryItem[]>([
+    {
+      id: '1',
+      title: 'Sneakers Nike Air Max',
+      status: 'published',
+      statusText: 'Pubblicato 2 giorni fa',
+      image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80',
+      price: '85.00',
+      date: '2026-03-25'
+    },
+    {
+      id: '2',
+      title: 'Orologio Minimalist Silver',
+      status: 'draft',
+      statusText: 'Bozza salvata',
+      image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80',
+      price: '45.00',
+      date: '2026-03-26'
+    },
+    {
+      id: '3',
+      title: 'Borsa in Pelle Artigianale',
+      status: 'processing',
+      statusText: 'Ottimizzazione in corso...',
+      image: 'https://images.unsplash.com/photo-1584916201218-f4242ceb4809?w=400&q=80',
+      price: '120.00',
+      date: '2026-03-27'
+    },
+    {
+      id: '4',
+      title: 'Vintage Camera 35mm',
+      status: 'sold',
+      statusText: 'Venduto su Vinted',
+      image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=400&q=80',
+      price: '65.00',
+      date: '2026-03-20'
+    }
+  ]);
 
   const [copiedTitle, setCopiedTitle] = useState(false);
   const [copiedDesc, setCopiedDesc] = useState(false);
@@ -14,6 +63,13 @@ export function Inventory() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState('Tutti');
   const [activeTab, setActiveTab] = useState<'Vinted' | 'eBay' | 'Wallapop' | 'Subito'>('Vinted');
+
+  // Publishing State
+  const [isPublishingModalOpen, setIsPublishingModalOpen] = useState(false);
+  const [publishingStatus, setPublishingStatus] = useState<'idle' | 'selecting' | 'publishing' | 'success' | 'error'>('idle');
+  const [selectedMarketplaces, setSelectedMarketplaces] = useState<string[]>(['Vinted']);
+  const [publishingProgress, setPublishingProgress] = useState(0);
+  const [publishingStep, setPublishingStep] = useState('');
 
   const [titleText, setTitleText] = useState(passedData?.title || "Giacca in denim Levi's Vintage 90s - Ottime Condizioni");
   
@@ -81,6 +137,63 @@ Ideale per collezionisti o amanti del genere vintage. Per ulteriori foto o misur
     }
   };
 
+  const startPublishing = () => {
+    setPublishingStatus('publishing');
+    setPublishingProgress(0);
+    
+    const steps = [
+      "Preparazione immagini...",
+      "Ottimizzazione metadati...",
+      "Connessione ai marketplace...",
+      "Invio bozze...",
+      "Finalizzazione annuncio..."
+    ];
+
+    let currentStep = 0;
+    const interval = setInterval(() => {
+      if (currentStep < steps.length) {
+        setPublishingStep(steps[currentStep]);
+        setPublishingProgress((currentStep + 1) * 20);
+        currentStep++;
+      } else {
+        clearInterval(interval);
+        setPublishingStatus('success');
+      }
+    }, 1000);
+  };
+
+  const getMarketplaceLink = (name: string) => {
+    switch(name) {
+      case 'Vinted': return 'https://www.vinted.it/items/new';
+      case 'eBay': return 'https://www.ebay.it/sl/sell';
+      case 'Wallapop': return 'https://it.wallapop.com/item/upload';
+      case 'Subito': return 'https://www.subito.it/inserisci.htm';
+      default: return '#';
+    }
+  };
+
+  const filteredItems = items.filter(item => {
+    if (activeFilter === 'Tutti') return true;
+    if (activeFilter === 'Pubblicati') return item.status === 'published';
+    if (activeFilter === 'Bozze') return item.status === 'draft';
+    if (activeFilter === 'Venduti') return item.status === 'sold';
+    if (activeFilter === 'In elaborazione') return item.status === 'processing';
+    return true;
+  });
+
+  const handleDeleteItem = (id: string) => {
+    if (window.confirm("Sei sicuro di voler eliminare questo oggetto?")) {
+      setItems(prev => prev.filter(item => item.id !== id));
+    }
+  };
+
+  const handleMarkAsSold = (id: string) => {
+    setItems(prev => prev.map(item => 
+      item.id === id ? { ...item, status: 'sold', statusText: 'Venduto ora' } : item
+    ));
+    alert("Oggetto segnato come venduto!");
+  };
+
   return (
     <div className="space-y-8">
       {/* Inventory Section Header */}
@@ -99,7 +212,7 @@ Ideale per collezionisti o amanti del genere vintage. Per ulteriori foto o misur
           
           {isFilterOpen && (
             <div className="absolute right-0 top-full mt-2 w-48 bg-surface-container-lowest rounded-2xl shadow-lg border border-outline-variant/20 overflow-hidden z-50">
-              {['Tutti', 'Pubblicati', 'Bozze', 'In elaborazione'].map((filter) => (
+              {['Tutti', 'Pubblicati', 'Bozze', 'Venduti', 'In elaborazione'].map((filter) => (
                 <button
                   key={filter}
                   onClick={() => {
@@ -131,11 +244,144 @@ Ideale per collezionisti o amanti del genere vintage. Per ulteriori foto o misur
             <h3 className="text-xl font-bold font-headline mb-1">{titleText}</h3>
             <p className="text-on-surface-variant text-sm line-clamp-2">Analisi AI completata. Ottimizzato per 4 piattaforme diverse.</p>
           </div>
-          <button className="bg-primary text-on-primary px-6 py-3 rounded-2xl font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-transform">
+          <button 
+            onClick={() => {
+              setIsPublishingModalOpen(true);
+              setPublishingStatus('selecting');
+            }}
+            className="bg-primary text-on-primary px-6 py-3 rounded-2xl font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-transform"
+          >
             Pubblica
           </button>
         </div>
       </div>
+
+      {/* Publishing Modal */}
+      {isPublishingModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setPublishingStatus('idle') || setIsPublishingModalOpen(false)}></div>
+          <div className="bg-surface-container-lowest w-full max-w-md rounded-[32px] shadow-2xl overflow-hidden relative z-10 animate-in zoom-in-95 duration-200">
+            <div className="p-8">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h3 className="text-2xl font-black font-headline">Pubblica Annuncio</h3>
+                  <p className="text-on-surface-variant text-sm">Seleziona dove vuoi vendere</p>
+                </div>
+                <button 
+                  onClick={() => setIsPublishingModalOpen(false)}
+                  className="p-2 rounded-full bg-surface-container-low text-on-surface-variant"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {publishingStatus === 'selecting' && (
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    {['Vinted', 'eBay', 'Wallapop', 'Subito'].map((mp) => (
+                      <label 
+                        key={mp}
+                        className={`flex items-center justify-between p-4 rounded-2xl border-2 transition-all cursor-pointer ${
+                          selectedMarketplaces.includes(mp) 
+                            ? 'border-primary bg-primary/5' 
+                            : 'border-outline-variant/20 hover:border-outline-variant'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white ${
+                            mp === 'Vinted' ? 'bg-[#09B1BA]' : 
+                            mp === 'eBay' ? 'bg-[#E53238]' : 
+                            mp === 'Wallapop' ? 'bg-[#13C1A4]' : 'bg-[#FF4700]'
+                          }`}>
+                            {mp[0]}
+                          </div>
+                          <span className="font-bold">{mp}</span>
+                        </div>
+                        <input 
+                          type="checkbox" 
+                          checked={selectedMarketplaces.includes(mp)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedMarketplaces([...selectedMarketplaces, mp]);
+                            } else {
+                              setSelectedMarketplaces(selectedMarketplaces.filter(m => m !== mp));
+                            }
+                          }}
+                          className="w-6 h-6 rounded-lg border-2 border-outline-variant text-primary focus:ring-primary"
+                        />
+                      </label>
+                    ))}
+                  </div>
+
+                  <button 
+                    disabled={selectedMarketplaces.length === 0}
+                    onClick={startPublishing}
+                    className="w-full py-4 rounded-2xl bg-primary text-on-primary font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100"
+                  >
+                    Conferma e Pubblica
+                  </button>
+                </div>
+              )}
+
+              {publishingStatus === 'publishing' && (
+                <div className="py-8 text-center space-y-6">
+                  <div className="relative w-24 h-24 mx-auto">
+                    <div className="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
+                    <div 
+                      className="absolute inset-0 border-4 border-primary rounded-full border-t-transparent animate-spin"
+                      style={{ clipPath: `conic-gradient(from 0deg, transparent 0%, transparent ${100 - publishingProgress}%, black ${100 - publishingProgress}%, black 100%)` }}
+                    ></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-xl font-black text-primary">{publishingProgress}%</span>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-lg mb-1">{publishingStep}</h4>
+                    <p className="text-on-surface-variant text-sm">Non chiudere l'app...</p>
+                  </div>
+                </div>
+              )}
+
+              {publishingStatus === 'success' && (
+                <div className="py-4 space-y-6">
+                  <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-primary">
+                    <Check size={40} strokeWidth={3} />
+                  </div>
+                  <div className="text-center">
+                    <h4 className="text-xl font-black mb-2">Annuncio Pronto!</h4>
+                    <p className="text-on-surface-variant text-sm">Abbiamo preparato le bozze sui marketplace selezionati.</p>
+                  </div>
+
+                  <div className="space-y-3">
+                    {selectedMarketplaces.map(mp => (
+                      <a 
+                        key={mp}
+                        href={getMarketplaceLink(mp)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between p-4 rounded-2xl bg-surface-container-low hover:bg-surface-container transition-colors group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="font-bold">{mp}</span>
+                          <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Bozza Pronta</span>
+                        </div>
+                        <ExternalLink size={18} className="text-on-surface-variant group-hover:text-primary transition-colors" />
+                      </a>
+                    ))}
+                  </div>
+
+                  <button 
+                    onClick={() => setIsPublishingModalOpen(false)}
+                    className="w-full py-4 rounded-2xl bg-surface-container-high text-on-surface font-bold active:scale-95 transition-all"
+                  >
+                    Chiudi
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tabs Container */}
       <div>
@@ -225,61 +471,77 @@ Ideale per collezionisti o amanti del genere vintage. Per ulteriori foto o misur
       </div>
 
       {/* Full Inventory List */}
-      <h3 className="text-xl font-black font-headline mb-6 text-on-surface px-2">Altri Oggetti</h3>
+      <div className="flex items-center justify-between px-2 mb-6">
+        <h3 className="text-xl font-black font-headline text-on-surface">Altri Oggetti</h3>
+        <span className="text-xs font-bold text-on-surface-variant bg-surface-container px-3 py-1 rounded-full">
+          {filteredItems.length} {filteredItems.length === 1 ? 'oggetto' : 'oggetti'}
+        </span>
+      </div>
+
       <div className="space-y-4">
-        {/* Item 1 */}
-        <div className="bg-surface-container-lowest p-3 rounded-2xl flex items-center gap-4 group hover:bg-surface-container-low transition-colors shadow-sm">
-          <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
-            <img 
-              src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80" 
-              alt="Sneakers" 
-              className="w-full h-full object-cover" 
-            />
+        {filteredItems.length === 0 ? (
+          <div className="text-center py-12 bg-surface-container-lowest rounded-3xl border-2 border-dashed border-outline-variant/30">
+            <p className="text-on-surface-variant font-medium">Nessun oggetto trovato in questa categoria.</p>
           </div>
-          <div className="flex-grow">
-            <h4 className="font-bold text-on-surface">Sneakers Nike Air Max</h4>
-            <p className="text-xs text-on-surface-variant">Pubblicato 2 giorni fa</p>
-          </div>
-          <button className="p-2 text-on-surface-variant hover:text-primary transition-colors">
-            <MoreVertical size={24} />
-          </button>
-        </div>
-
-        {/* Item 2 */}
-        <div className="bg-surface-container-lowest p-3 rounded-2xl flex items-center gap-4 group hover:bg-surface-container-low transition-colors shadow-sm">
-          <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
-            <img 
-              src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80" 
-              alt="Watch" 
-              className="w-full h-full object-cover" 
-            />
-          </div>
-          <div className="flex-grow">
-            <h4 className="font-bold text-on-surface">Orologio Minimalist Silver</h4>
-            <p className="text-xs text-on-surface-variant">Bozza salvata</p>
-          </div>
-          <button className="p-2 text-on-surface-variant hover:text-primary transition-colors">
-            <MoreVertical size={24} />
-          </button>
-        </div>
-
-        {/* Item 3 */}
-        <div className="bg-surface-container-lowest p-3 rounded-2xl flex items-center gap-4 group hover:bg-surface-container-low transition-colors shadow-sm border-2 border-primary-container/20">
-          <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
-            <img 
-              src="https://images.unsplash.com/photo-1584916201218-f4242ceb4809?w=400&q=80" 
-              alt="Borsa" 
-              className="w-full h-full object-cover" 
-            />
-          </div>
-          <div className="flex-grow">
-            <h4 className="font-bold text-on-surface">Borsa in Pelle Artigianale</h4>
-            <p className="text-xs text-primary font-bold">Ottimizzazione in corso...</p>
-          </div>
-          <button className="p-2 text-on-surface-variant hover:text-primary transition-colors">
-            <MoreVertical size={24} />
-          </button>
-        </div>
+        ) : (
+          filteredItems.map((item) => (
+            <div key={item.id} className="bg-surface-container-lowest p-3 rounded-2xl flex items-center gap-4 group hover:bg-surface-container-low transition-all shadow-sm border border-outline-variant/5">
+              <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 shadow-sm">
+                <img 
+                  src={item.image} 
+                  alt={item.title} 
+                  className="w-full h-full object-cover transition-transform group-hover:scale-110" 
+                />
+              </div>
+              <div className="flex-grow">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <h4 className="font-bold text-on-surface text-sm line-clamp-1">{item.title}</h4>
+                  {item.status === 'sold' && (
+                    <span className="bg-secondary/10 text-secondary text-[8px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded">VENDUTO</span>
+                  )}
+                </div>
+                <p className={`text-[10px] font-bold ${
+                  item.status === 'published' ? 'text-primary' : 
+                  item.status === 'processing' ? 'text-tertiary animate-pulse' : 
+                  item.status === 'sold' ? 'text-on-surface-variant/50' : 'text-on-surface-variant'
+                }`}>
+                  {item.statusText}
+                </p>
+                <p className="text-xs font-black text-on-surface mt-1">€{item.price}</p>
+              </div>
+              
+              <div className="relative group/menu">
+                <button className="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-full hover:bg-surface-container">
+                  <MoreVertical size={20} />
+                </button>
+                
+                {/* Dropdown Menu (Hidden by default, shown on hover/click) */}
+                <div className="absolute right-0 top-full mt-1 w-40 bg-surface-container-lowest rounded-xl shadow-xl border border-outline-variant/20 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all z-50 overflow-hidden">
+                  <button 
+                    onClick={() => alert(`Modifica ${item.title}`)}
+                    className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-surface-container-low flex items-center gap-2"
+                  >
+                    Modifica
+                  </button>
+                  {item.status !== 'sold' && (
+                    <button 
+                      onClick={() => handleMarkAsSold(item.id)}
+                      className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-surface-container-low flex items-center gap-2 text-secondary"
+                    >
+                      Segna come Venduto
+                    </button>
+                  )}
+                  <button 
+                    onClick={() => handleDeleteItem(item.id)}
+                    className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-surface-container-low flex items-center gap-2 text-error"
+                  >
+                    Elimina
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
