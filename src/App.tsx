@@ -14,6 +14,7 @@ import { AnalysisDashboard } from './pages/AnalysisDashboard';
 import { DetailedAnalysis } from './pages/DetailedAnalysis';
 import { Inventory } from './pages/Inventory';
 import { Account } from './pages/Account';
+import { Subscription } from './pages/Subscription';
 import { Auth } from './pages/Auth';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -52,6 +53,7 @@ export default function App() {
               <Route path="detailed-analysis" element={<DetailedAnalysis />} />
               <Route path="inventory" element={<Inventory />} />
               <Route path="account" element={<Account />} />
+              <Route path="subscription" element={<Subscription />} />
             </Route>
           </Routes>
         </BrowserRouter>

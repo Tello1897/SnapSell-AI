@@ -22,9 +22,14 @@
           "type": "string",
           "format": "date-time",
           "description": "When the user profile was created"
+        },
+        "plan": {
+          "type": "string",
+          "enum": ["free", "premium"],
+          "description": "The user's subscription plan"
         }
       },
-      "required": ["uid", "email", "createdAt"]
+      "required": ["uid", "email", "createdAt", "plan"]
     }
   },
   "firestore": {

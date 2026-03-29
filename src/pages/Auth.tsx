@@ -67,13 +67,14 @@ export function Auth() {
             uid: user.uid,
             email: user.email,
             displayName: name,
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
+            plan: 'free'
           });
         } catch (err) {
           handleFirestoreError(err, OperationType.CREATE, `users/${user.uid}`);
         }
         
-        navigate('/');
+        navigate('/subscription');
       }
     } catch (err: any) {
       console.error(err);

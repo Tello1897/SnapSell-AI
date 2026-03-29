@@ -10,6 +10,7 @@ import {
   ChevronRight, 
   CreditCard, 
   Sparkles,
+  Zap,
   Settings,
   ArrowLeft,
   Check,
@@ -26,7 +27,7 @@ import { db } from '../firebase';
 type Section = 'main' | 'personal' | 'billing' | 'notifications' | 'privacy' | 'marketplaces' | 'theme' | 'language' | 'support';
 
 export function Account() {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, userData, logout, refreshUserData } = useAuth();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState<Section>('main');
   const [loading, setLoading] = useState(false);
@@ -56,6 +57,7 @@ export function Account() {
 
   // Marketplaces State
   const [connectedMarketplaces, setConnectedMarketplaces] = useState<string[]>(['Vinted']);
+  const userPlan = userData?.plan || 'free';
 
   const toggleMarketplace = async (name: string) => {
     if (connectedMarketplaces.includes(name)) {
@@ -159,68 +161,107 @@ export function Account() {
               <h3 className="text-2xl font-black font-headline">Abbonamento</h3>
             </header>
             
-            <div className="bg-primary rounded-3xl p-6 text-on-primary shadow-xl shadow-primary/20 relative overflow-hidden">
+            <div className={`rounded-3xl p-6 text-on-primary shadow-xl relative overflow-hidden ${userPlan === 'premium' ? 'bg-primary shadow-primary/20' : 'bg-surface-container-highest text-on-surface border border-outline-variant/20 shadow-none'}`}>
               <div className="relative z-10">
                 <div className="flex justify-between items-start mb-8">
                   <div>
-                    <h4 className="text-lg font-bold opacity-80">Piano Attuale</h4>
-                    <p className="text-3xl font-black font-headline">SnapSell Pro</p>
+                    <h4 className={`text-lg font-bold ${userPlan === 'premium' ? 'opacity-80' : 'text-on-surface-variant'}`}>Piano Attuale</h4>
+                    <p className={`text-3xl font-black font-headline ${userPlan === 'premium' ? '' : 'text-primary'}`}>
+                      {userPlan === 'premium' ? 'SnapSell Premium' : 'SnapSell Free'}
+                    </p>
                   </div>
-                  <Sparkles size={32} className="fill-current" />
+                  {userPlan === 'premium' ? <Sparkles size={32} className="fill-current" /> : <Zap size={32} className="text-primary/20" />}
                 </div>
+                
                 <div className="space-y-2 mb-8">
-                  <div className="flex items-center gap-2 text-sm font-medium">
-                    <Check size={16} /> Scansioni IA illimitate
+                  <div className={`flex items-center gap-2 text-sm font-medium ${userPlan === 'premium' ? '' : 'text-on-surface-variant'}`}>
+                    <Check size={16} className={userPlan === 'premium' ? '' : 'text-primary'} /> 
+                    {userPlan === 'premium' ? 'Scansioni IA illimitate' : '5 Scansioni IA / mese'}
                   </div>
-                  <div className="flex items-center gap-2 text-sm font-medium">
-                    <Check size={16} /> Multi-posting automatico
+                  <div className={`flex items-center gap-2 text-sm font-medium ${userPlan === 'premium' ? '' : 'text-on-surface-variant'}`}>
+                    <Check size={16} className={userPlan === 'premium' ? '' : 'text-primary'} /> 
+                    {userPlan === 'premium' ? 'Tutti i Marketplace' : '1 Marketplace connesso'}
                   </div>
-                  <div className="flex items-center gap-2 text-sm font-medium">
-                    <Check size={16} /> Analisi prezzi avanzata
+                  <div className={`flex items-center gap-2 text-sm font-medium ${userPlan === 'premium' ? '' : 'text-on-surface-variant'}`}>
+                    {userPlan === 'premium' ? <Check size={16} /> : <X size={16} className="text-error/40" />}
+                    Analisi prezzi avanzata
                   </div>
                 </div>
+
                 <div className="flex justify-between items-end">
-                  <p className="text-sm opacity-80">Prossimo rinnovo: 12 Apr 2026</p>
-                  <p className="text-xl font-black font-headline">€9.90/mese</p>
+                  {userPlan === 'premium' ? (
+                    <>
+                      <p className="text-sm opacity-80">Prossimo rinnovo: 12 Apr 2026</p>
+                      <p className="text-xl font-black font-headline">€5.99/mese</p>
+                    </>
+                  ) : (
+                    <button 
+                      onClick={() => navigate('/subscription')}
+                      className="w-full py-3 rounded-xl bg-primary text-on-primary font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all"
+                    >
+                      Passa a Premium
+                    </button>
+                  )}
                 </div>
               </div>
-              <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+              {userPlan === 'premium' && <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>}
             </div>
 
-            <div className="space-y-4">
-              <h4 className="font-bold text-on-surface px-1 text-sm uppercase tracking-widest">Metodo di Pagamento</h4>
-              <div className="bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/10 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-8 bg-surface-container rounded flex items-center justify-center">
-                    <CreditCard size={20} className="text-primary" />
+            {userPlan === 'premium' && (
+              <div className="space-y-4">
+                <h4 className="font-bold text-on-surface px-1 text-sm uppercase tracking-widest">Metodo di Pagamento</h4>
+                <div className="bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/10 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-8 bg-surface-container rounded flex items-center justify-center">
+                      <CreditCard size={20} className="text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-sm">•••• 4242</p>
+                      <p className="text-xs text-on-surface-variant">Scade 12/28</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-bold text-sm">•••• 4242</p>
-                    <p className="text-xs text-on-surface-variant">Scade 12/28</p>
-                  </div>
+                  <button 
+                    onClick={() => navigate('/subscription')}
+                    className="text-primary text-xs font-bold"
+                  >
+                    Modifica
+                  </button>
                 </div>
-                <button 
-                  onClick={() => alert("Funzionalità di modifica pagamento in arrivo!")}
-                  className="text-primary text-xs font-bold"
-                >
-                  Modifica
-                </button>
               </div>
-            </div>
+            )}
 
             <div className="space-y-3">
-              <button 
-                onClick={() => alert("Cronologia fatture non disponibile in questa demo.")}
-                className="w-full py-4 rounded-2xl border-2 border-outline-variant/30 font-bold text-on-surface hover:bg-surface-container-low transition-colors"
-              >
-                Cronologia Fatture
-              </button>
-              <button 
-                onClick={() => alert("Sei sicuro di voler annullare? Contatta il supporto per assistenza.")}
-                className="w-full py-4 rounded-2xl text-error font-bold hover:bg-error/5 transition-colors"
-              >
-                Annulla Abbonamento
-              </button>
+              {userPlan === 'premium' ? (
+                <>
+                  <button 
+                    onClick={() => alert("Cronologia fatture non disponibile in questa demo.")}
+                    className="w-full py-4 rounded-2xl border-2 border-outline-variant/30 font-bold text-on-surface hover:bg-surface-container-low transition-colors"
+                  >
+                    Cronologia Fatture
+                  </button>
+                  <button 
+                    onClick={async () => {
+                      if (!currentUser) return;
+                      try {
+                        await updateDoc(doc(db, 'users', currentUser.uid), { plan: 'free' });
+                        await refreshUserData();
+                      } catch (err) {
+                        console.error("Error cancelling subscription:", err);
+                      }
+                    }}
+                    className="w-full py-4 rounded-2xl text-error font-bold hover:bg-error/5 transition-colors"
+                  >
+                    Annulla Abbonamento
+                  </button>
+                </>
+              ) : (
+                <div className="p-6 bg-surface-container-low rounded-3xl border border-outline-variant/10">
+                  <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Perché passare a Premium?</p>
+                  <p className="text-sm text-on-surface-variant leading-relaxed">
+                    Gli utenti Premium vendono in media il 40% più velocemente grazie alle descrizioni ottimizzate e alla presenza su più marketplace contemporaneamente.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         );
